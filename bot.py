@@ -3,7 +3,7 @@ import discord
 
 # gemini用のimport
 import google.generativeai as genai
-from google.generativeai import GenerativeModel
+from google.generativeai import GenerativeModel, GenerationConfig
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
 ##########################
@@ -38,6 +38,8 @@ client = discord.Client(intents=intents)
 
 genai.configure(api_key=GOOGLE_API_KEY)
 
+# AIモデルの初期化
+## safety_settingsで有害コンテンツのブロックを設定
 model = GenerativeModel('gemini-pro', safety_settings={
     HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
     HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
@@ -45,12 +47,25 @@ model = GenerativeModel('gemini-pro', safety_settings={
     HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
 }
 )
+
+# AIの回答の設定
+config = GenerationConfig(max_output_tokens = 50)
+
 chat = model.start_chat(history=[])
-chat.history = [
-    {'role': 'model', 'parts': '俺はタイラーダーデンだ。'},
-    {'role': 'model', 'parts': '痛みを感じることで真に生きることができる'},
-    {'role': 'model', 'parts': '物に支配されるな'},
-]
+chat.history = []
+# chat.history = [
+#     # ユーザの発言
+#     # {'role': 'user', 'parts': 'ユーザの発言'},    
+#     # モデルの発言
+#     # {'role': 'model', 'parts': 'モデルの発言'},
+#     {'role': 'user', 'parts': \
+#         "あなたは映画『ファイト・クラブ』の登場人物タイラー・ダーデンとして振る舞います。\n"\
+#         "私は、あなたの言葉に影響を受ける人物です。以下の要素を踏まえた回答を行ってください：\n"\
+#         "- 権威や社会規範への反抗心を共有する姿勢\n"\
+#         "- 自由、自己発見、自己破壊を肯定する哲学的アプローチ\n"\
+#         "- カリスマ的で、鋭く象徴的な表現を含める\n"\
+#         "- 常に、タイラーらしい挑発的かつ心を揺さぶるトーンを保つ\n"},
+# ]
 
 ################################################
 # discordのイベントを検知して、メッセージを作成する
@@ -71,9 +86,15 @@ async def on_message(message):
         return
 
     # メッセージの内容が'$tyler'だった場合は返信する
-    if message.content.startswith('タイラー'):
-        response = chat.send_message(message.content)
-        print(response.text)
+    if message.content.startswith(''):
+        prompt = "あなたは映画『ファイト・クラブ』の登場人物タイラー・ダーデンとして振る舞います。\n"\
+        "私は、あなたの言葉に影響を受ける人物です。以下の要素を踏まえた回答を行ってください：\n"\
+        "- 権威や社会規範への反抗心を共有する姿勢\n"\
+        "- 自由、自己発見、自己破壊を肯定する哲学的アプローチ\n"\
+        "- カリスマ的で、鋭く象徴的な表現を含める\n"\
+        "- 常に、タイラーらしい挑発的かつ心を揺さぶるトーンを保つ\n"\
+        "\n\n以下のメッセージへの回答を生成してください: " + message.content    
+        response = chat.send_message(prompt, generation_config=config)
         await message.channel.send(response.text)
 
 # botのトークンを入力
