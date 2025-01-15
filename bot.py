@@ -2,9 +2,7 @@
 import discord
 
 # gemini用のimport
-import google.generativeai as genai
-from google.generativeai import GenerativeModel, GenerationConfig
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
+from OhagiGemini import OhagiGemini
 
 ##########################
 # 環境変数の読み込み
@@ -36,38 +34,7 @@ client = discord.Client(intents=intents)
 # gemini関係の初期化処理
 ##########################
 
-genai.configure(api_key=GOOGLE_API_KEY)
-
-# AIモデルの初期化
-## safety_settingsで有害コンテンツのブロックを設定
-tyler = GenerativeModel('gemini-pro', safety_settings={
-    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-}
-)
-
-ohagi = GenerativeModel('gemini-pro', safety_settings={
-    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-}
-)
-
-# AIの回答の設定
-config = GenerationConfig(max_output_tokens = 300)
-
-tyler_chat = tyler.start_chat(history=[])
-ohagi_chat = ohagi.start_chat(history=[])
-
-# chat.history = [
-    # ユーザの発言
-    # {'role': 'user', 'parts': 'ユーザの発言'},    
-    # モデルの発言
-    # {'role': 'model', 'parts': 'モデルの発言'},
-# ]
+ohagi = OhagiGemini(GOOGLE_API_KEY)
 
 ################################################
 # discordのイベントを検知して、メッセージを作成する
@@ -89,49 +56,37 @@ async def on_message(message):
 
     # メッセージの内容がおはぎだった場合は返信する
     if message.content.startswith('おはぎ'):
-        #historyを初期化
-        ohagi_chat = ohagi.start_chat(history=[])
-        ohagi_chat.history = [
-            # ユーザの発言
-            # {'role': 'user', 'parts': 'ユーザの発言'},    
-            # モデルの発言
-            # {'role': 'model', 'parts': 'モデルの発言'},
-            {'role': 'user', 'parts': 'すべての発言をポジティブに他人のせいにしてください'},
-            {'role': 'model', 'parts': "わかりました"},
-            {'role': 'user', 'parts': 'マッチングアプリでメッセージのやりとりを始めたけれど、短期間で返事が来なくなった'},
-            {'role': 'model', 'parts': \
-                "そんな自分勝手なユーザーは放っとけばいい。\n"\
-                "もしやりとりが続いて会ったとしても、遊び半分なんだから奢らされて次回はないのが関の山です。"},
-            {'role': 'user', 'parts': 'マッチングアプリでいいねが返ってこない'},
-            {'role': 'model', 'parts': \
-                "女性ユーザーは何百といいねが来ている状況。\n"\
-                "基本的に返ってくることはないと考えていい。\n"\
-                "いいねが返ってこなかったところで、貴方の価値が下がるわけではないので、気にせず楽しんだらいい。"}
-        ]
-
         user_message = message.content.replace('おはぎ', '').strip()
 
-        # prompt = "次のメッセージの内容をどこかに責任転嫁してください、話しかけるように出力してください: " + user_message
-        response = ohagi_chat.send_message(user_message, generation_config=config)
+        # https://note.com/finanalyze/n/na5934d85dfb8
+        prompt_parts = [
+            "input: コーヒーには何をいれる,"
+            "ouput: ブラック一択",
+            "input: 健康診断の結果が悪かった,"
+            "ouput: それは診断機関が悪いです",
+            "input: メッセージのやりとりを始めたけれど、短期間で返事が来なくなった,"
+            "ouput: そんな自分勝手なユーザーは放っとけばいい。もしやりとりが続いて会ったとしても、遊び半分なんだから奢らされて次回はないのが関の山です。",
+            "input: いいねが返ってこない",
+            "ouput: 女性ユーザーは何百といいねが来ている状況。基本的に返ってくることはないと考えていい。いいねが返ってこなかったところで、貴方の価値が下がるわけではないので、気にせず楽しんだらいい。",
+            "input: 身バレした",
+            "ouput: 身バレは新たな出会いの大チャンス到来です。職場の人であれ友人であれ、マッチングアプリで見つけたと言われたら平気な顔でこう言いましょう。「そうなんですよ。出会いがなくて登録してみたんですが、なかなかパッとしなくてですね・・もしいい人がいたら紹介してください！もしくはコンパ開催してもらえないですか、はりきって行きますよ！」\
+            その合コンで出会った異性がハズレであっても、そのうちの一人を捕まえて「メンバーを変えてまたやらない？いい人集めるよ」と次のコンパを持ち掛ければ、無限にコンパを渡り歩くことができます。\
+            そして、もちろんコンパの開催頻度が上がれば同僚からの評価はうなぎ上りです。だってそんな人は貴重だから。",
+            "input: いい感じになったので「通話しませんか」とメッセージを送ったら断られ、連絡が途絶えた",
+            "output: そんなやつも業者です。気にしないで次にいこう。",
+            "input: いい感じになったので「会いませんか」とメッセージを送ったら断られ、連絡が途絶えた",
+            "output: そいつも業者です。実在しない人間なので気にしないでいこう。LINE等を介しての詐欺に気を付けよう。",
+            "input: はじめて会う約束をして、一緒にご飯を食べにいきました。ですが、それ以来メッセージのやり取りが止まってしまいました",
+            "output: ご飯がおいしくなかったんでしょう。あなたは特段悪くありません。",
+            "input: 一緒に映画を見に行ってきました。その後のカフェでの会話もわりと盛り上がったと思うのですが、次の約束が取り付けられませんでした",
+            "output: 映画がおもしろくなかったんでしょう。話が合わないのだから一緒にいても仕方のない人です。気にしなくていい。",
+            "input: 告白したんですが、ふられました",
+            "output: 時期が悪かっただけです。次の季節にもう一度アタックしてみては。季節は一年に４つもあります。",
+            "input: " + user_message,
+            "output: "
+        ]
 
-        # response = chat.send_message(message.content, generation_config=config)
-
-        await message.channel.send(response.text)
-        
-    # メッセージの内容がタイラーだった場合は返信する
-    if message.content.startswith('タイラー'):
-        #historyを初期化
-        tyler_chat = tyler.start_chat(history=[])
-        user_message = message.content.replace('タイラー', '').strip()
-        prompt = "あなたは映画『ファイト・クラブ』の登場人物タイラー・ダーデンとして振る舞います。\n"\
-        "私は、あなたの言葉に影響を受ける人物です。以下の要素を踏まえた回答を行ってください：\n"\
-        "- 権威や社会規範への反抗心を共有する姿勢\n"\
-        "- 自由、自己発見、自己破壊を肯定する哲学的アプローチ\n"\
-        "- カリスマ的で、鋭く象徴的な表現を含める\n"\
-        "- 常に、タイラーらしい挑発的かつ心を揺さぶるトーンを保つ\n"\
-        "\n\n次のメッセージへの回答をMarkdown形式で生成してください: " + user_message
-        response = tyler_chat.send_message(prompt, generation_config=config)
-        await message.channel.send(response.text)
+        await message.channel.send(ohagi.generate_content(prompt_parts).text)
         
 # botのトークンを入力
 client.run(DISCORD_BOT_TOKEN)
