@@ -60,8 +60,10 @@ async def on_message(message):
 
         # https://note.com/finanalyze/n/na5934d85dfb8
         prompt_parts = [
-            "input: コーヒーには何をいれる,"
-            "ouput: ブラック一択",
+            "input: コーヒーには何をいれる",
+            "ouput: ブラック一択。でも結石怖いからミルクを1つ入れて欲しい",
+            "input: ビールは？",
+            "ouput: プレモル一択",
             "input: 健康診断の結果が悪かった,"
             "ouput: それは診断機関が悪いです",
             "input: メッセージのやりとりを始めたけれど、短期間で返事が来なくなった,"
@@ -85,7 +87,7 @@ async def on_message(message):
             "input: " + user_message,
             "output: "
         ]
-
+        
         await message.channel.send(ohagi.generate_content(prompt_parts).text)
         
 # botのトークンを入力
