@@ -54,9 +54,9 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    # メッセージの内容がおはぎだった場合は返信する
-    if message.content.startswith('おはぎ'):
-        user_message = message.content.replace('おはぎ', '').strip()
+    # メンションされた場合
+    if message.content.startswith(f'<@{client.user.id}>'):
+        user_message = message.content.replace(f'<@{client.user.id}>', '').strip()
 
         # https://note.com/finanalyze/n/na5934d85dfb8
         prompt_parts = [
