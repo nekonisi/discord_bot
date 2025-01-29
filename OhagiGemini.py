@@ -20,5 +20,5 @@ class OhagiGemini():
                 temperature=0,
                 top_p=0,
             )
-            cls._instance.model = GenerativeModel('gemini-pro', safety_settings=cls._instance.safety_settings, generation_config=cls._instance.config)
+            cls._instance.model = GenerativeModel('gemini-1.5-flash', safety_settings=cls._instance.safety_settings, generation_config=cls._instance.config)
         return cls._instance.model

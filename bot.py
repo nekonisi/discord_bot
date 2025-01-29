@@ -55,8 +55,10 @@ async def on_message(message):
         return
 
     # メンションされた場合
-    if message.content.startswith(f'<@{client.user.id}>'):
-        user_message = message.content.replace(f'<@{client.user.id}>', '').strip()
+    # if message.content.startswith(f'<@{client.user.id}>'):
+    #     user_message = message.content.replace(f'<@{client.user.id}>', '').strip()
+    if message.content.startswith('おはぎ'):
+        user_message = message.content.replace('おはぎ', '').strip()
 
         # https://note.com/finanalyze/n/na5934d85dfb8
         prompt_parts = [
