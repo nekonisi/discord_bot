@@ -13,7 +13,7 @@ class AiFather(ABC):
         pass
 
     @abstractmethod
-    def make_sperm(self) -> 'Sperm':
+    def make_sperm(self) -> None:
         """
         - Spermインスタンスから、ai_characterを生成する
         """
