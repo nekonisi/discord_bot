@@ -11,18 +11,47 @@ class AiAssistant:
     ai_param: list
     chat: ChatSession
     model: GenerativeModel
-    prompts: list
 
-    def __init__(self, api_key: str, ai_character: list = None, prompts: list = []) -> None:
-        self.__prepare(api_key)
-        self.model = genai.GenerativeModel(model_name='gemini-1.5-flash',
-                                           safety_settings=genai.safety_settings)
-        self.chat = None
-        self.prompts = prompts
+    def __init__(self, api_key: str, ai_character: list = None) -> None:
+        """
+        - ai_assistant自体の初期化を行う
+        
+        Parameters
+        ----------
+        api_key : str
+            Google CloudのAPIキー
+        
+        ai_character : list, optional
+            AIのキャラクターを指定する。デフォルトはNone。
+            Noneの場合は、デフォルトのキャラクターが設定される。
+
+        Returns
+        -------
+        None
+        
+        """
         self.ai_character = ai_character
+        self.__prepare(api_key)
+        # HACK: モデルを選択できるようにする
+        self.model = genai.GenerativeModel(model_name='gemini-1.5-flash',
+                                           safety_settings=genai.safety_settings,
+                                           system_instruction=self.ai_character)
+        self.chat = None
         self.start_chat()
         
     def __prepare(self, api_key: str) -> None:
+        """
+        - AIの初期化を行うための準備を行う
+        
+        Parameters
+        ----------
+        api_key : str
+            Google CloudのAPIキー
+        
+        Returns
+        -------
+        None
+        """
         # デフォルトの設定
         # HACK: モデルを選択できるようにする
         genai.configure(api_key=api_key)
@@ -33,21 +62,44 @@ class AiAssistant:
             HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
             HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
         }
-        # genai.system_instructions = self.ai_character
         
     def generate_response(self, message: str) -> str:
-        print(self.model)
+        """
+        - メッセージを受け取り、AIからの応答を生成する
+        
+        Parameters
+        ----------
+        message: str
+            ユーザーからのメッセージ
+                
+        Returns
+        -------
+        response: str
+            AIからの応答
+        """
+        # print(self.model)
         response = self.chat.send_message(message)
         return response.text
 
-    def start_chat(self, prompts = "") -> None:
+    def start_chat(self) -> None:
+        """
+        - `ai_character`（デフォルトの命令）を元にChatを開始する
+        - 既にChatが存在する場合は何もしない。
+        
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
         if (self.chat == None):
-            self.chat = self.model.start_chat(history = self.prompts)
+            self.chat = self.model.start_chat()
 
     def reset_chat(self) -> None:
+        """
+        - Chatをリセットする
+        """
         # HACK: チャットセッションを保存する機構を作りたい
         self.chat = None
-
-model = AiAssistant('AIzaSyBucaJsX45IJb58CyoH60YqvyUtbXLJGlg')
-print(model.generate_response('私の名前は？'))
-print(model.generate_response('私の名前は？'))
