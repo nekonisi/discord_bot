@@ -77,7 +77,6 @@ class AiAssistant:
         response: str
             AIからの応答
         """
-        # print(self.model)
         response = self.chat.send_message(message)
         return response.text
 

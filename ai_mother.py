@@ -13,7 +13,7 @@ class AiMother:
         - 環境変数、あるいは、dotenvファイルからGoogle APIトークンを取得して設定する
         """
         load_dotenv()
-        self.GOOGLE_API_TOKEN = os.getenv('GOOGLE_API_TOKEN')
+        self.GOOGLE_API_TOKEN = os.getenv('GOOGLE_API_KEY')
         self.baby = None
         if self.GOOGLE_API_TOKEN is None:
             raise ValueError("Google API Tokenが設定されていません")        
